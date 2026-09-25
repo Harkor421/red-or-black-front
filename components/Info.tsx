@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
-import { CheckCircle2, Dices, ExternalLink, Flame, Loader2, RefreshCcw, ShieldCheck, Timer, XCircle } from "lucide-react";
+import { CheckCircle2, Coins, Dices, ExternalLink, Loader2, RefreshCcw, ShieldCheck, Wallet, XCircle } from "lucide-react";
 import { useLive } from "@/lib/live";
-import { cn, lamports, short, sol } from "@/lib/format";
+import { cn, compact, lamports, short, sol } from "@/lib/format";
 import { verifyRound } from "@/lib/wheel";
 import type { Settle } from "@/lib/types";
 
@@ -12,11 +12,13 @@ export function HowItWorks() {
   const live = useLive();
   const mins = Math.round((live.rules?.roundMs ?? 300_000) / 60_000);
   const ticker = live.brand.ticker;
+  const minHold = live.coin?.minHold;
+  const hold = minHold != null ? `${compact(minHold)} $${ticker}` : `${live.rules?.minHoldPct ?? 0.05}% of the supply`;
   const steps = [
-    { icon: <Timer />, title: `${mins} minutes to pick`, body: "Every round, tap RED or BLACK. It's free — no wallet, no bet. Switch as often as you like until the bell." },
-    { icon: <Dices />, title: "The wheel spins", body: "At the bell the majority color is locked in and a public drand beacon — not us — decides where the ball lands." },
-    { icon: <Flame />, title: "Win → buyback & burn", body: `If the ball lands on the community's color, the whole pot of creator rewards buys $${ticker} and burns it. On chain, with the signatures.` },
-    { icon: <RefreshCcw />, title: "Lose → the pot rolls over", body: "Nothing is lost. The pot carries to the next spin and keeps growing with every trade until the community hits." },
+    { icon: <Wallet />, title: "Paste your wallet", body: `No connect, no signature — the address is only used to pay you. Hold at least ${hold} at the bell to cash in.` },
+    { icon: <Dices />, title: `Pick RED or BLACK`, body: `One pick per wallet every ${mins} minutes. Free, and you can switch as often as you like until the bell.` },
+    { icon: <Coins />, title: "Winners split the pot", body: "A public drand beacon — not us — lands the ball. Everyone who picked that color splits every creator reward in equal parts, sent in SOL." },
+    { icon: <RefreshCcw />, title: "Nobody? It rolls over", body: "If nobody eligible called it, the pot carries to the next spin and keeps growing with every trade." },
   ];
   return (
     <section className="mx-auto max-w-6xl px-4 py-16">
@@ -60,8 +62,6 @@ export function Fairness({ picked }: { picked: Settle | null }) {
         chainHash: live.rules.drand.chainHash,
         drandUrl: live.rules.drand.url,
         claimed: r.result,
-        tie: r.tie,
-        pick: r.pick,
       });
       setState({
         id: r.id,
@@ -86,11 +86,11 @@ export function Fairness({ picked }: { picked: Settle | null }) {
         <p className="mt-3 text-sm leading-relaxed text-white/65">
           The ball is decided by <b className="text-white">drand quicknet</b>, a public randomness beacon signed by an independent network (Cloudflare, Protocol Labs, EPFL…).
           The beacon round each spin uses is fixed when the round opens and only exists <b className="text-white">after</b> the bell — nobody, us included, can know or choose it
-          while votes are open. The wheel has 18 red and 18 black pockets, no zero.
+          while picks are open. The wheel has 18 red and 18 black pockets, no zero.
         </p>
         <pre className="mt-4 overflow-x-auto rounded-2xl bg-black/50 p-4 font-mono text-[11px] leading-relaxed text-emerald-200/90">
 {`pocket = WHEEL[ uint64(sha256(randomness + ":" + roundId + ":spin")) mod 36 ]
-tie    = sha256(randomness + ":" + roundId + ":tie")[0] is even ? red : black`}
+share  = (pot − transfer fees) ÷ winners holding the minimum at the bell`}
         </pre>
 
         {r ? (
@@ -99,12 +99,13 @@ tie    = sha256(randomness + ":" + roundId + ":tie")[0] is even ? red : black`}
               <Field k="round" v={String(r.id)} />
               <Field k="drand beacon" v={`#${r.beacon}`} href={r.drand?.url} />
               <Field k="randomness" v={short(r.drand?.randomness, 10, 10)} />
-              <Field k="votes" v={`${r.votes.red} red · ${r.votes.black} black → ${r.pick}${r.tie ? " (tie)" : ""}`} />
+              <Field k="picks" v={`${r.votes.red} red · ${r.votes.black} black`} />
               <Field k="result" v={r.result ? `${r.result.number} ${r.result.color}` : "void"} />
-              <Field k="outcome" v={r.win ? "community won" : "rolled over"} />
+              <Field k="winners" v={r.win ? `${r.payouts.length} × ${sol(lamports(r.shareLamports), 4)} SOL` : "rolled over"} />
               {r.claim?.sig && <Field k="claim" v={short(r.claim.sig, 6, 6)} href={`${explorer}/tx/${r.claim.sig}`} />}
-              {r.buy?.sig && <Field k="buyback" v={`${sol(lamports(r.buy.lamports), 4)} SOL`} href={`${explorer}/tx/${r.buy.sig}`} />}
-              {r.burn?.sig && <Field k="burn" v={short(r.burn.sig, 6, 6)} href={`${explorer}/tx/${r.burn.sig}`} />}
+              {r.payouts.find((p) => p.sig) && (
+                <Field k="payout tx" v={short(r.payouts.find((p) => p.sig)!.sig, 6, 6)} href={`${explorer}/tx/${r.payouts.find((p) => p.sig)!.sig}`} />
+              )}
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <button onClick={run} className="flex items-center gap-2 rounded-full bg-emerald-400 px-4 py-2 text-sm font-bold text-black hover:brightness-110">

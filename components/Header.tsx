@@ -117,11 +117,11 @@ export function ModeBanner() {
     <div className={cn("mx-auto mt-4 max-w-3xl rounded-2xl border px-4 py-2.5 text-center text-xs", live.mode === "dry" ? "border-amber-400/25 bg-amber-400/5 text-amber-200/90" : "border-white/10 bg-white/[0.03] text-white/60")}>
       {live.mode === "demo" ? (
         <>
-          <b className="text-white">DEMO</b> — the coin isn&apos;t launched yet. Votes and spins are real, the pot is simulated.
+          <b className="text-white">DEMO</b> — the coin isn&apos;t launched yet. Picks and spins are real, the pot is simulated and every wallet counts.
         </>
       ) : (
         <>
-          <b className="text-amber-300">DRY RUN</b> — real votes, real spins, the real pot. Buybacks are simulated on mainnet, nothing is sent yet.
+          <b className="text-amber-300">DRY RUN</b> — real picks, real spins, real holdings, the real pot. Payouts are simulated on mainnet, nothing is sent yet.
         </>
       )}
     </div>

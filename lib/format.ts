@@ -28,7 +28,3 @@ export function clock(ms: number) {
   const t = Math.max(0, Math.ceil(ms / 1000));
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
 }
-
-/** A voter's four hex characters, dressed as a table name. */
-const ANIMALS = ["🐸", "🦊", "🐺", "🐯", "🦁", "🐷", "🐵", "🦄", "🐲", "🦈", "🐙", "🦅", "🐻", "🐼", "🐨", "🦍"];
-export const avatar = (who: string) => ANIMALS[parseInt(who.slice(0, 2), 16) % ANIMALS.length];

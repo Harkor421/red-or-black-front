@@ -11,8 +11,11 @@ export type Round = {
   beacon: number;
   beaconAt: number;
   counts: Counts;
+  eligibleCounts: Counts;
   voters: number;
 };
+
+export type Payout = { wallet: string; lamports: number; sig: string | null };
 
 export type Settle = {
   id: number;
@@ -20,21 +23,24 @@ export type Settle = {
   endsAt: number;
   mode: Mode;
   votes: Counts;
+  eligibleVotes: Counts;
   voters: number;
-  pick: Side | null;
-  tie: boolean;
   beacon: number;
   beaconAt: number;
   beaconUrl: string;
   drand: { round: number; randomness: string; signature: string; url: string } | null;
   result: { index: number; number: number; color: Side } | null;
+  /** Wallets that picked the winning colour, and how many of them held the minimum. */
+  winners: number;
+  eligible: number;
+  shareLamports: number;
+  totalLamports: number;
+  payouts: Payout[];
   win: boolean | null;
-  stage: "locked" | "spinning" | "buying" | "burning" | "done";
-  status: "lost" | "void" | "burned" | "burn_pending" | "won_small" | "buy_failed" | "dry_win" | null;
+  stage: "locked" | "spinning" | "paying" | "done";
+  status: "paid" | "partial" | "pay_failed" | "rollover" | "too_small" | "void" | "dry" | null;
   potLamports: number | null;
   claim: { sig?: string; lamports?: number; error?: string; skipped?: boolean; dry?: boolean; simulated?: string } | null;
-  buy: { sig?: string | null; lamports?: number; tokensRaw?: number; venue?: string | null; demo?: boolean; dry?: boolean; simulated?: string | null } | null;
-  burn: { sig?: string | null; raw?: number; demo?: boolean } | null;
   note: string | null;
   settledAt: number | null;
 };
@@ -45,7 +51,6 @@ export type Pot = {
   usd: number | null;
   carried: number;
   claimable: number;
-  pendingBurnRaw: number;
   wallet: number | null;
   solUsd: number | null;
   at: number;
@@ -58,34 +63,46 @@ export type Coin = {
   decimals: number;
   mcapSol: number | null;
   mcapUsd: number | null;
+  minHold: number | null;
 };
 
 export type Totals = {
   rounds: number;
-  wins: number;
-  losses: number;
+  paidRounds: number;
+  rollovers: number;
   voids: number;
-  burnedRaw: number;
-  solSpent: number;
+  solPaid: number;
+  walletsPaid: number;
   claimed: number;
-  buybacks: number;
-  burned: number;
-  solSpentSol: number;
+  biggestShare: number;
+  solPaidSol: number;
   claimedSol: number;
-  streak: { kind: "win" | "loss" | null; n: number };
+  biggestShareSol: number;
+  streak: { kind: "paid" | "rollover" | null; n: number };
 };
 
 export type Rules = {
   roundMs: number;
-  minBuySol: number;
-  burnMode: string;
+  minHoldPct: number;
+  minShareSol: number;
+  maxPayoutSol: number | null;
   explorer: string;
   drand: { chainHash: string; genesis: number; period: number; url: string };
 };
 
 export type Brand = { name: string; ticker: string; twitter: string; site: string };
 
-export type FeedItem = { key: string; who: string; side: Side; at: number; switched: boolean };
+export type FeedItem = { key: string; wallet: string; side: Side; at: number; switched: boolean; eligible: boolean | null };
+
+export type Me = {
+  roundId: number | null;
+  side: Side | null;
+  eligible?: boolean | null;
+  holding?: number | null;
+  minHold?: number | null;
+  excluded?: boolean;
+  won?: { lamports: number; sol: number; wins: number };
+};
 
 export type LiveState = {
   connected: boolean;
@@ -103,6 +120,7 @@ export type LiveState = {
   totals: Totals | null;
   rules: Rules | null;
   feed: FeedItem[];
-  me: { roundId: number; side: Side | null } | null;
+  wallet: string | null;
+  me: Me | null;
   toast: { key: number; text: string } | null;
 };

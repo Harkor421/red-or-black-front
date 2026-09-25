@@ -35,7 +35,6 @@ export function Pot({ stream = false }: { stream?: boolean }) {
     prev.current = value;
   }, [value]);
 
-  const ticker = live.brand.ticker;
   const carried = lamports(pot?.carried) ?? 0;
   const claimable = lamports(pot?.claimable) ?? 0;
 
@@ -86,7 +85,7 @@ export function Pot({ stream = false }: { stream?: boolean }) {
           </div>
         )}
         <p className={cn("mt-3 text-white/60", stream ? "text-xl" : "text-xs")}>
-          If the ball lands on the community&apos;s color, <b className="text-white">all of it buys ${ticker} and burns it</b>. If not, it rolls over and grows.
+          Everyone who picks the color the ball lands on <b className="text-white">splits all of it in SOL</b>. Nobody? It rolls over and grows.
         </p>
       </div>
     </motion.div>

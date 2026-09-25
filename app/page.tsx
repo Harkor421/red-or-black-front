@@ -7,7 +7,8 @@ import { CopyCA, Header, ModeBanner, Toast } from "@/components/Header";
 import { Table } from "@/components/Table";
 import { VoteButtons } from "@/components/VoteButtons";
 import { Pot } from "@/components/Pot";
-import { Feed, History, Stats } from "@/components/Board";
+import { Feed, History, Stats, Winners } from "@/components/Board";
+import { WalletBox } from "@/components/WalletBox";
 import { Fairness, HowItWorks } from "@/components/Info";
 import { useLive } from "@/lib/live";
 import type { Settle } from "@/lib/types";
@@ -27,6 +28,7 @@ export default function Home() {
         <div className="order-2 space-y-4 lg:col-start-2 lg:row-start-1 xl:col-start-1">
           <Pot />
           <Stats />
+          <Winners />
         </div>
 
         <div className="order-1 lg:col-start-1 lg:row-span-2 lg:row-start-1 xl:col-start-2 xl:row-span-1">
@@ -35,10 +37,11 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-4 text-center font-display text-sm tracking-wide text-white/70 sm:text-base"
           >
-            CALL THE COLOR. IF THE BALL AGREES, <span className="text-[#ff4a57]">${ticker} BURNS.</span>
+            PICK A COLOR. IF THE BALL LANDS ON IT, <span className="text-[#f5c542]">YOU SPLIT THE POT.</span>
           </motion.p>
           <Table />
           <div className="mt-6">
+            <WalletBox />
             <VoteButtons />
           </div>
         </div>
@@ -62,8 +65,8 @@ export default function Home() {
           <CopyCA />
         </div>
         <p className="mx-auto mt-4 max-w-xl px-4 text-[11px] leading-relaxed text-white/35">
-          Voting is free and nobody wagers anything: the only thing on the table is the creator rewards of ${ticker}. Every spin is verifiable from a public beacon, and
-          every claim, buyback and burn links to its transaction. Not financial advice.
+          Picking is free and nobody wagers anything: the only thing on the table is the creator rewards of ${ticker}, split between the wallets that call the color. Every
+          spin is verifiable from a public beacon, and every claim and payout links to its transaction. Not financial advice.
         </p>
       </footer>
       <Toast />
