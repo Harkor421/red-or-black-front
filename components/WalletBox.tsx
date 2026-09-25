@@ -17,6 +17,8 @@ export function WalletBox() {
   const [editing, setEditing] = useState(false);
   const ticker = live.brand.ticker;
   const minHold = live.coin?.minHold ?? live.me?.minHold ?? null;
+  // Any amount counts unless the backend sets a floor.
+  const need = minHold ? `${compact(minHold)} $${ticker}` : `any amount of $${ticker}`;
   const pump = live.coin ? `https://pump.fun/coin/${live.coin.mint}` : null;
   const valid = looksLikeWallet(draft.trim());
 
@@ -82,10 +84,10 @@ export function WalletBox() {
             </form>
             <p className="mt-2 text-[11px] leading-relaxed text-white/45">
               Free to play — no connect, no signature. The address is only used to pay you.
-              {live.mode !== "demo" && minHold != null && (
+              {live.mode !== "demo" && (
                 <>
                   {" "}
-                  Hold at least <b className="text-white/80">{compact(minHold)} ${ticker}</b> at the bell to cash in.
+                  Hold <b className="text-white/80">{need}</b> at the bell to cash in — every winner gets the same share, big bag or small.
                 </>
               )}
             </p>
@@ -117,7 +119,7 @@ export function WalletBox() {
                 </span>
               ) : me?.eligible === false ? (
                 <span className="flex items-center gap-1.5 rounded-full bg-amber-400/15 px-2.5 py-1 text-amber-200">
-                  <AlertTriangle size={13} /> hold {compact(me.minHold ?? minHold)} ${ticker} to cash in
+                  <AlertTriangle size={13} /> hold {need} to cash in
                   {pump && (
                     <a href={pump} target="_blank" rel="noreferrer" className="font-bold text-amber-100 underline underline-offset-2">
                       buy

@@ -17,7 +17,9 @@ export function compact(n: number | null | undefined) {
   if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
   if (n >= 1e6) return `${(n / 1e6).toFixed(2)}M`;
   if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
-  return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+  // A crumb of a bag still counts, so it must not read as 0.
+  if (n > 0 && n < 1) return n.toPrecision(2);
+  return n.toLocaleString("en-US", { maximumFractionDigits: n < 10 ? 2 : 0 });
 }
 
 export const lamports = (l: number | null | undefined) => (l == null ? null : l / 1e9);
