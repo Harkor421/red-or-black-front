@@ -1,0 +1,204 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bungee), var(--font-inter), sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+:root {
+  --red: #e11d2e;
+  --gold: #f5c542;
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: #07070a;
+  color: #fff;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+/* ── logo ─────────────────────────────────────────────────────────────── */
+.logo-red {
+  color: #ff2d3d;
+  text-shadow: 0 0 18px rgba(255, 45, 61, 0.75), 0 0 2px #fff;
+  animation: neon 3.2s infinite;
+}
+.logo-black {
+  color: #0b0b0e;
+  -webkit-text-stroke: 1.5px #f5f5f5;
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.35);
+}
+@keyframes neon {
+  0%, 92%, 100% { opacity: 1; }
+  93% { opacity: 0.4; }
+  95% { opacity: 1; }
+  96% { opacity: 0.6; }
+}
+
+.text-gold {
+  background: linear-gradient(180deg, #fff6cf 0%, #f5c542 55%, #b07d17 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-shimmer {
+  background: linear-gradient(100deg, #f5c542 20%, #fff8dc 40%, #ff2d3d 60%, #f5c542 80%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 2.2s linear infinite;
+}
+@keyframes shimmer {
+  to { background-position: -250% 0; }
+}
+
+/* ── wheel ────────────────────────────────────────────────────────────── */
+.bulb {
+  fill: #ffe9a3;
+  animation: bulb 0.9s infinite alternate;
+}
+@keyframes bulb {
+  from { fill: #5a4410; filter: none; }
+  to { fill: #fff3c4; filter: drop-shadow(0 0 3px #ffd75e); }
+}
+.pocket-glow {
+  animation: pocketGlow 1.1s ease-in-out infinite alternate;
+}
+@keyframes pocketGlow {
+  from { opacity: 0.45; }
+  to { opacity: 1; }
+}
+.urgent-pulse {
+  animation: urgent 1s ease-in-out infinite;
+}
+@keyframes urgent {
+  0%, 100% { transform: scale(1); text-shadow: 0 0 0 rgba(255, 45, 61, 0); }
+  50% { transform: scale(1.08); text-shadow: 0 0 24px rgba(255, 45, 61, 0.9); }
+}
+.no-more-bets {
+  animation: nmb 0.5s steps(2) infinite;
+  text-shadow: 0 0 16px rgba(245, 197, 66, 0.8);
+}
+@keyframes nmb {
+  50% { opacity: 0.55; }
+}
+
+/* ── buttons & chips ──────────────────────────────────────────────────── */
+.btn-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.28) 45%, transparent 60%);
+  background-size: 250% 100%;
+  animation: shine 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes shine {
+  0% { background-position: 150% 0; }
+  60%, 100% { background-position: -100% 0; }
+}
+.chip-spin {
+  animation: chipSpin 2.4s linear infinite;
+}
+@keyframes chipSpin {
+  to { transform: rotate(360deg); }
+}
+
+.live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #ff2d3d;
+  box-shadow: 0 0 0 0 rgba(255, 45, 61, 0.7);
+  animation: livePulse 1.4s infinite;
+}
+@keyframes livePulse {
+  70% { box-shadow: 0 0 0 8px rgba(255, 45, 61, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 45, 61, 0); }
+}
+
+/* ── pot & result ─────────────────────────────────────────────────────── */
+.pot-glow {
+  box-shadow: 0 0 0 1px rgba(245, 197, 66, 0.05), 0 20px 60px -20px rgba(245, 197, 66, 0.35);
+  animation: potGlow 3s ease-in-out infinite;
+}
+@keyframes potGlow {
+  50% { box-shadow: 0 0 0 1px rgba(245, 197, 66, 0.15), 0 20px 70px -10px rgba(245, 197, 66, 0.5); }
+}
+.win-glow {
+  box-shadow: 0 0 80px rgba(245, 197, 66, 0.35), 0 0 160px rgba(225, 29, 46, 0.35);
+}
+.fire-pulse {
+  animation: firePulse 0.9s ease-in-out infinite alternate;
+}
+@keyframes firePulse {
+  to { box-shadow: 0 0 50px rgba(255, 120, 0, 0.85); transform: scale(1.04); }
+}
+.flame-flicker {
+  animation: flicker 0.35s infinite alternate;
+}
+@keyframes flicker {
+  from { transform: scale(1) rotate(-4deg); }
+  to { transform: scale(1.2) rotate(5deg); }
+}
+
+/* ── background ───────────────────────────────────────────────────────── */
+.blob {
+  position: absolute;
+  width: 70vmax;
+  height: 70vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.55;
+}
+.blob-red {
+  background: radial-gradient(circle, rgba(225, 29, 46, 0.55), transparent 65%);
+  top: -30vmax;
+  left: -20vmax;
+  animation: drift1 22s ease-in-out infinite alternate;
+}
+.blob-dark {
+  background: radial-gradient(circle, rgba(120, 10, 25, 0.5), transparent 65%);
+  bottom: -35vmax;
+  right: -25vmax;
+  animation: drift2 26s ease-in-out infinite alternate;
+}
+@keyframes drift1 {
+  to { transform: translate(18vmax, 14vmax) scale(1.15); }
+}
+@keyframes drift2 {
+  to { transform: translate(-16vmax, -12vmax) scale(1.2); }
+}
+.felt {
+  background-image: repeating-linear-gradient(45deg, #fff 0 1px, transparent 1px 12px), repeating-linear-gradient(-45deg, #fff 0 1px, transparent 1px 12px);
+}
+.suit {
+  position: absolute;
+  bottom: -60px;
+  animation-name: floatUp;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  user-select: none;
+}
+@keyframes floatUp {
+  from { transform: translateY(0) rotate(0deg); }
+  to { transform: translateY(-120vh) rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .suit, .blob, .bulb, .btn-shine, .chip-spin, .logo-red, .text-shimmer { animation: none !important; }
+}
