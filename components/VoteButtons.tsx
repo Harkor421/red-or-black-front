@@ -60,17 +60,17 @@ export function VoteButtons({ stream = false }: { stream?: boolean }) {
               )}
             >
               <span className="btn-shine" />
-              <div className="relative flex items-start justify-between">
-                <div>
-                  <div className={cn("font-display leading-none text-white drop-shadow", stream ? "text-6xl" : "text-3xl sm:text-4xl")}>{side.toUpperCase()}</div>
-                  <div className={cn("mt-1 font-mono text-white/75", stream ? "text-2xl" : "text-xs sm:text-sm")}>
+              <div className="relative flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className={cn("font-display leading-none text-white drop-shadow", stream ? "text-6xl" : "text-[26px] sm:text-4xl")}>{side.toUpperCase()}</div>
+                  <div className={cn("mt-1 whitespace-nowrap font-mono text-white/75", stream ? "text-2xl" : "text-[11px] sm:text-sm")}>
                     <motion.span key={n} initial={{ y: -8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="inline-block">
                       {n}
                     </motion.span>{" "}
                     vote{n === 1 ? "" : "s"} · {pct}%
                   </div>
                 </div>
-                <Chip side={side} size={stream ? 64 : 40} spin={selected} />
+                <Chip side={side} size={stream ? 64 : 32} spin={selected} />
               </div>
               <AnimatePresence>
                 {selected && (
@@ -91,11 +91,15 @@ export function VoteButtons({ stream = false }: { stream?: boolean }) {
 
       {/* tug of war */}
       <div className={cn("relative mt-4 overflow-hidden rounded-full border border-white/10 bg-[#0b0b0e]", stream ? "h-6" : "h-3")}>
-        <motion.div className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#9b0b18] to-[#ff2d3d]" animate={{ width: `${redPct}%` }} transition={{ type: "spring", stiffness: 120, damping: 18 }} />
-        <motion.div
-          className="absolute inset-y-0 w-1 -translate-x-1/2 bg-[#f5c542] shadow-[0_0_12px_#f5c542]"
-          animate={{ left: `${redPct}%` }}
-          transition={{ type: "spring", stiffness: 120, damping: 18 }}
+        {/* CSS transitions, not motion: an absolutely positioned div with no width
+            starts at "auto", and motion cannot animate auto → 50% */}
+        <div
+          className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#9b0b18] to-[#ff2d3d] transition-[width] duration-700 ease-[cubic-bezier(.34,1.56,.64,1)]"
+          style={{ width: `${redPct}%` }}
+        />
+        <div
+          className="absolute inset-y-0 w-1 -translate-x-1/2 bg-[#f5c542] shadow-[0_0_12px_#f5c542] transition-[left] duration-700 ease-[cubic-bezier(.34,1.56,.64,1)]"
+          style={{ left: `${redPct}%` }}
         />
       </div>
       <div className={cn("mt-1.5 flex justify-between font-mono text-white/40", stream ? "text-lg" : "text-[11px]")}>
