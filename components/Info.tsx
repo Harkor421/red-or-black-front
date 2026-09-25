@@ -13,11 +13,11 @@ export function HowItWorks() {
   const mins = Math.round((live.rules?.roundMs ?? 300_000) / 60_000);
   const ticker = live.brand.ticker;
   const minHold = live.coin?.minHold;
-  const hold = minHold != null ? `${compact(minHold)} $${ticker}` : `${live.rules?.minHoldPct ?? 0.05}% of the supply`;
+  const hold = minHold ? `at least ${compact(minHold)} $${ticker}` : `any amount of $${ticker}`;
   const steps = [
-    { icon: <Wallet />, title: "Paste your wallet", body: `No connect, no signature — the address is only used to pay you. Hold at least ${hold} at the bell to cash in.` },
+    { icon: <Wallet />, title: "Paste your wallet", body: `No connect, no signature — the address is only used to pay you. Hold ${hold} at the bell to cash in.` },
     { icon: <Dices />, title: `Pick RED or BLACK`, body: `One pick per wallet every ${mins} minutes. Free, and you can switch as often as you like until the bell.` },
-    { icon: <Coins />, title: "Winners split the pot", body: "A public drand beacon — not us — lands the ball. Everyone who picked that color splits every creator reward in equal parts, sent in SOL." },
+    { icon: <Coins />, title: "Winners split the pot", body: "A public drand beacon — not us — lands the ball. Everyone who picked that color and holds splits every creator reward in equal parts — a small bag gets the same as a big one — sent in SOL." },
     { icon: <RefreshCcw />, title: "Nobody? It rolls over", body: "If nobody eligible called it, the pot carries to the next spin and keeps growing with every trade." },
   ];
   return (
