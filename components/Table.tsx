@@ -7,7 +7,7 @@
 //   beacon ("spinning") → both decelerate onto the result pocket (8 s)
 //   landed              → the result card, then back to idle
 //
-// Everything after the landing (buying, burning) streams into the result card
+// Everything after the landing (the payout batches) streams into the result card
 // as it happens. A viewer who arrives late sees the ball already in its pocket.
 
 import { useEffect, useRef, useState } from "react";

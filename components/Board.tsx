@@ -1,12 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { Flame, Snowflake, Trophy, Coins } from "lucide-react";
+import { Coins, Crown, RefreshCcw, Snowflake, Trophy, Users } from "lucide-react";
 import { useLive } from "@/lib/live";
-import { avatar, cn, compact, sol } from "@/lib/format";
+import { cn, short, sol } from "@/lib/format";
 import type { Settle } from "@/lib/types";
 
-/** The last results, like the board next to a real table. Gold ring = the community won it. */
+/** The last results, like the board next to a real table. Gold ring = somebody got paid. */
 export function History({ onPick, stream = false, max = 24 }: { onPick?: (r: Settle) => void; stream?: boolean; max?: number }) {
   const live = useLive();
   const rows = live.history.filter((r) => r.result || r.status === "void").slice(0, max);
@@ -34,7 +34,7 @@ export function History({ onPick, stream = false, max = 24 }: { onPick?: (r: Set
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: "spring", stiffness: 400, damping: 18 }}
                 onClick={() => onPick?.(r)}
-                title={`${r.result ? `${r.result.number} ${r.result.color}` : "void"} · picked ${r.pick ?? "—"} · ${r.win ? "WIN" : "loss"}`}
+                title={`${r.result ? `${r.result.number} ${r.result.color}` : "void"} · ${r.win ? `${r.payouts.length} paid` : "rolled over"}`}
                 className={cn(
                   "relative flex items-center justify-center rounded-full font-mono font-bold text-white transition-transform hover:scale-110",
                   stream ? "size-14 text-xl" : "size-9 text-xs",
@@ -43,7 +43,7 @@ export function History({ onPick, stream = false, max = 24 }: { onPick?: (r: Set
                 )}
               >
                 {r.result?.number ?? "∅"}
-                {r.win && <span className={cn("absolute -top-1 -right-1", stream ? "text-lg" : "text-[10px]")}>🔥</span>}
+                {r.win && <span className={cn("absolute -top-1 -right-1", stream ? "text-lg" : "text-[10px]")}>🪙</span>}
               </motion.button>
             ))}
           </AnimatePresence>
@@ -77,8 +77,11 @@ export function Feed() {
                 transition={{ type: "spring", stiffness: 300, damping: 24 }}
                 className="flex items-center gap-2 rounded-xl bg-white/[0.04] px-3 py-1.5 text-sm"
               >
-                <span className="text-base">{avatar(f.who)}</span>
-                <span className="font-mono text-xs text-white/50">#{f.who}</span>
+                <span
+                  title={f.eligible === false ? "doesn't hold the minimum" : f.eligible ? "can cash" : ""}
+                  className={cn("size-2 shrink-0 rounded-full", f.eligible ? "bg-emerald-400" : f.eligible === false ? "bg-white/20" : "bg-white/40")}
+                />
+                <span className="font-mono text-xs text-white/70">{f.wallet}</span>
                 <span className="text-white/40">{f.switched ? "switched to" : "picked"}</span>
                 <span className={cn("ml-auto rounded-md px-2 py-0.5 font-display text-xs", f.side === "red" ? "bg-[#e11d2e] text-white" : "bg-black text-white ring-1 ring-white/20")}>
                   {f.side.toUpperCase()}
@@ -96,16 +99,16 @@ export function Feed() {
 export function Stats({ stream = false }: { stream?: boolean }) {
   const live = useLive();
   const t = live.totals;
-  const ticker = live.brand.ticker;
   const streak = t?.streak;
+  const size = stream ? 32 : 18;
   const items = [
-    { icon: <Flame className="text-orange-400" size={stream ? 32 : 18} />, label: `$${ticker} burned`, value: compact(t?.burned ?? 0) },
-    { icon: <Coins className="text-[#f5c542]" size={stream ? 32 : 18} />, label: "SOL bought back", value: sol(t?.solSpentSol ?? 0, 3) },
-    { icon: <Trophy className="text-emerald-300" size={stream ? 32 : 18} />, label: "record", value: `${t?.wins ?? 0}W – ${t?.losses ?? 0}L` },
+    { icon: <Coins className="text-[#f5c542]" size={size} />, label: "SOL paid out", value: sol(t?.solPaidSol ?? 0, 3) },
+    { icon: <Users className="text-emerald-300" size={size} />, label: "wallets paid", value: String(t?.walletsPaid ?? 0) },
+    { icon: <Crown className="text-orange-300" size={size} />, label: "biggest share", value: `${sol(t?.biggestShareSol ?? 0, 3)}` },
     {
-      icon: streak?.kind === "loss" ? <Snowflake className="text-sky-300" size={stream ? 32 : 18} /> : <Flame className="text-red-400" size={stream ? 32 : 18} />,
-      label: "streak",
-      value: streak?.n ? `${streak.n} ${streak.kind === "win" ? "win" : "loss"}${streak.n === 1 ? "" : streak.kind === "win" ? "s" : "es"}` : "—",
+      icon: streak?.kind === "rollover" ? <RefreshCcw className="text-sky-300" size={size} /> : streak?.kind === "paid" ? <Trophy className="text-red-400" size={size} /> : <Snowflake className="text-white/40" size={size} />,
+      label: streak?.kind === "rollover" ? "rolling over" : "paid in a row",
+      value: streak?.n ? `${streak.n}×` : "—",
     },
   ];
   return (
@@ -127,6 +130,37 @@ export function Stats({ stream = false }: { stream?: boolean }) {
           </motion.div>
         </motion.div>
       ))}
+    </div>
+  );
+}
+
+/** The latest paid wallets, across rounds. */
+export function Winners() {
+  const live = useLive();
+  const rows = live.history
+    .filter((r) => r.win)
+    .flatMap((r) => r.payouts.map((p) => ({ ...p, roundId: r.id, color: r.result?.color, mode: r.mode })))
+    .slice(0, 6);
+  if (!rows.length) return null;
+  const explorer = live.rules?.explorer ?? "https://solscan.io";
+  return (
+    <div className="rounded-3xl border border-[#f5c542]/20 bg-[#f5c542]/[0.03] p-4">
+      <div className="mb-3 font-display text-xs tracking-widest text-[#f5c542]/80">LATEST WINNERS</div>
+      <ul className="space-y-1.5">
+        {rows.map((p) => (
+          <li key={`${p.roundId}-${p.wallet}`} className="flex items-center gap-2 text-sm">
+            <span className={cn("size-3 rounded-full", p.color === "red" ? "bg-[#e11d2e]" : "bg-black ring-1 ring-white/30")} />
+            <span className="font-mono text-xs text-white/70">{short(p.wallet, 4, 4)}</span>
+            {p.sig ? (
+              <a href={`${explorer}/tx/${p.sig}`} target="_blank" rel="noreferrer" className="ml-auto font-mono text-[#f5c542] hover:underline">
+                +{sol(p.lamports / 1e9, 4)}
+              </a>
+            ) : (
+              <span className="ml-auto font-mono text-white/60">+{sol(p.lamports / 1e9, 4)}</span>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -30,11 +30,6 @@ export async function spin(randomness: string, roundId: number) {
   return { index, number, color: colorOf(number) };
 }
 
-export async function tieBreak(randomness: string, roundId: number): Promise<Side> {
-  const d = await sha256(`${randomness}:${roundId}:tie`);
-  return d[0] % 2 === 0 ? "red" : "black";
-}
-
 /**
  * Fetch the beacon straight from drand — not from our backend — check that its
  * randomness is the hash of its signature, and re-derive the pocket.
@@ -45,20 +40,16 @@ export async function verifyRound(opts: {
   chainHash: string;
   drandUrl: string;
   claimed: { number: number; color: Side };
-  tie: boolean;
-  pick: Side | null;
 }) {
   const res = await fetch(`${opts.drandUrl.replace(/\/$/, "")}/${opts.chainHash}/public/${opts.beacon}`);
   if (!res.ok) throw new Error(`drand said ${res.status}`);
   const j = await res.json();
   const sigOk = toHex(await sha256(hexToBytes(j.signature))) === j.randomness;
   const s = await spin(j.randomness, opts.roundId);
-  const tiePick = opts.tie ? await tieBreak(j.randomness, opts.roundId) : null;
   return {
     randomness: j.randomness as string,
     sigOk,
     derived: s,
-    matches: s.number === opts.claimed.number && s.color === opts.claimed.color && (!opts.tie || tiePick === opts.pick),
-    tiePick,
+    matches: s.number === opts.claimed.number && s.color === opts.claimed.color,
   };
 }

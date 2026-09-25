@@ -2,7 +2,7 @@
 
 // The stream view. Point an OBS browser source at /live (1920×1080): a fixed
 // 16:9 stage scaled to whatever window it is in, no scrolling, nothing to
-// click. ?sound=1 turns the ball, the bell and the burn on from the start.
+// click. ?sound=1 turns the ball, the bell and the payout on from the start.
 
 import { useEffect, useState } from "react";
 import { Background } from "@/components/Background";
@@ -58,7 +58,7 @@ export default function LivePage() {
               <VoteButtons stream />
               <History stream max={20} />
               <div className="rounded-3xl border border-[#f5c542]/30 bg-[#f5c542]/5 p-6 text-center">
-                <div className="font-display text-2xl text-white/70">PICK YOUR COLOR AT</div>
+                <div className="font-display text-2xl text-white/70">PASTE YOUR WALLET &amp; PICK AT</div>
                 <div className="mt-1 font-display text-4xl text-[#f5c542]">{site || "the link in the description"}</div>
               </div>
             </div>

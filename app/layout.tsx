@@ -7,7 +7,7 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const mono = JetBrains_Mono({ variable: "--font-jetbrains", subsets: ["latin"] });
 
 const title = "RED OR BLACK";
-const description = "Pick a color. Every 5 minutes the wheel spins — if the community calls it, every creator reward buys the coin back and burns it.";
+const description = "Paste your wallet, pick a color. Every 5 minutes the wheel spins — everyone who called it splits the creator rewards in SOL.";
 
 export const metadata: Metadata = {
   title,

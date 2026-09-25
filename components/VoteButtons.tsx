@@ -24,6 +24,11 @@ export function VoteButtons({ stream = false }: { stream?: boolean }) {
 
   function pick(side: Side, e: React.MouseEvent<HTMLButtonElement>) {
     if (stream) return;
+    if (!live.wallet) {
+      vote(side);
+      document.querySelector<HTMLInputElement>("input[placeholder*='wallet']")?.focus();
+      return;
+    }
     sfx.chip();
     vote(side);
     // A chip flies from the button into the wheel.
@@ -67,8 +72,13 @@ export function VoteButtons({ stream = false }: { stream?: boolean }) {
                     <motion.span key={n} initial={{ y: -8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="inline-block">
                       {n}
                     </motion.span>{" "}
-                    vote{n === 1 ? "" : "s"} · {pct}%
+                    pick{n === 1 ? "" : "s"} · {pct}%
                   </div>
+                  {live.mode !== "demo" && (
+                    <div className={cn("whitespace-nowrap font-mono text-white/50", stream ? "text-lg" : "text-[10px] sm:text-xs")}>
+                      {r?.eligibleCounts?.[side] ?? 0} can cash
+                    </div>
+                  )}
                 </div>
                 <Chip side={side} size={stream ? 64 : 32} spin={selected} />
               </div>
@@ -103,8 +113,8 @@ export function VoteButtons({ stream = false }: { stream?: boolean }) {
         />
       </div>
       <div className={cn("mt-1.5 flex justify-between font-mono text-white/40", stream ? "text-lg" : "text-[11px]")}>
-        <span>{r?.voters ?? 0} voting</span>
-        <span>{closed ? "no more bets" : mine ? "tap the other color to switch" : "free · one pick per round"}</span>
+        <span>{r?.voters ?? 0} wallet{r?.voters === 1 ? "" : "s"} in</span>
+        <span>{closed ? "no more bets" : !live.wallet && !stream ? "paste your wallet to play" : mine ? "tap the other color to switch" : "free · one pick per round"}</span>
       </div>
 
       {/* flying chips */}

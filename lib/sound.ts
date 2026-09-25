@@ -68,7 +68,7 @@ export const lose = () => {
   tone(180, 0.7, { type: "sawtooth", gain: 0.08, slide: -120 });
   tone(90, 0.9, { gain: 0.18, slide: -40 });
 };
-export const burn = () => {
+export const whoosh = () => {
   if (!enabled || !ctx) return;
   // A whoosh: filtered noise swelling up.
   const len = ctx.sampleRate * 1.2;

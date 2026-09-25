@@ -28,6 +28,7 @@ const INITIAL: LiveState = {
   totals: null,
   rules: null,
   feed: [],
+  wallet: null,
   me: null,
   toast: null,
 };
@@ -56,26 +57,32 @@ export function useLive(): LiveState {
 /** Server time, from the offset measured on every hello and tick. */
 export const serverNow = () => Date.now() + state.offset;
 
-// ── identity ────────────────────────────────────────────────────────────────
+// ── the wallet ──────────────────────────────────────────────────────────────
 
-let memVoter: string | null = null;
+/** Base58, 32–44 characters. The server is the one that checks it is a real, payable wallet. */
+export const looksLikeWallet = (w: string) => /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(w);
 
-function voterId(): string {
-  const make = () => {
-    const b = new Uint8Array(16);
-    crypto.getRandomValues(b);
-    return "v" + Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
-  };
+function savedWallet(): string | null {
   try {
-    const have = localStorage.getItem("rob:voter");
-    if (have && /^[A-Za-z0-9_-]{8,64}$/.test(have)) return have;
-    const id = make();
-    localStorage.setItem("rob:voter", id);
-    return id;
+    const w = localStorage.getItem("rob:wallet");
+    return w && looksLikeWallet(w) ? w : null;
   } catch {
-    // Private mode: a per-tab identity still lets you vote this session.
-    return (memVoter ??= make());
+    return null;
   }
+}
+
+function hi() {
+  if (state.wallet && ws?.readyState === 1) ws.send(JSON.stringify({ op: "hi", wallet: state.wallet }));
+}
+
+export function setWallet(w: string | null) {
+  const next = w?.trim() || null;
+  try {
+    if (next) localStorage.setItem("rob:wallet", next);
+    else localStorage.removeItem("rob:wallet");
+  } catch {}
+  set({ wallet: next, me: null });
+  hi();
 }
 
 // ── socket ──────────────────────────────────────────────────────────────────
@@ -117,29 +124,33 @@ function onMessage(m: any) {
         totals: m.totals,
         rules: m.rules,
       });
-      ws?.send(JSON.stringify({ op: "hi", voter: voterId() }));
+      hi();
       break;
     case "tick":
       set({ offset: m.now - Date.now(), viewers: m.viewers });
       break;
     case "round":
-      set((s) => ({ round: m.round, me: s.me && s.me.roundId === m.round.id ? s.me : { roundId: m.round.id, side: null } }));
+      set((s) => ({ round: m.round, me: s.me ? { ...s.me, roundId: m.round.id, side: null } : null }));
       break;
     case "me":
-      set({ me: { roundId: m.roundId, side: m.side } });
+      if (m.wallet !== state.wallet) break;
+      set({ me: { roundId: m.roundId, side: m.side, eligible: m.eligible, holding: m.holding, minHold: m.minHold, excluded: m.excluded, won: m.won } });
       break;
     case "vote": {
-      const item: FeedItem = { key: `${m.ts}-${m.who}-${m.side}`, who: m.who, side: m.side, at: m.ts ?? Date.now(), switched: !!m.prev };
+      const item: FeedItem = { key: `${m.ts}-${m.wallet}-${m.side}`, wallet: m.wallet, side: m.side, at: m.ts ?? Date.now(), switched: !!m.prev, eligible: m.eligible };
       set((s) => ({
-        round: s.round && s.round.id === m.roundId ? { ...s.round, counts: m.counts, voters: m.voters } : s.round,
+        round: s.round && s.round.id === m.roundId ? { ...s.round, counts: m.counts, eligibleCounts: m.eligibleCounts, voters: m.voters } : s.round,
         feed: [item, ...s.feed].slice(0, 30),
       }));
       break;
     }
     case "voteAck":
+      if (m.wallet !== state.wallet) break;
       if (!m.ok) {
         toast(m.error === "no more bets" ? "No more bets — next round is open" : m.error);
-        ws?.send(JSON.stringify({ op: "hi", voter: voterId() }));
+        hi();
+      } else {
+        set((s) => ({ me: { ...(s.me ?? {}), roundId: m.roundId, side: m.side, eligible: m.eligible, holding: m.holding, minHold: m.minHold, excluded: m.excluded } }));
       }
       break;
     case "settle":
@@ -147,14 +158,13 @@ function onMessage(m: any) {
         settling: m.round,
         history: m.round.stage === "done" ? upsertHistory(s.history, m.round) : s.history,
       }));
+      // Winnings change when a round pays: re-read this wallet's total.
+      if (m.round.stage === "done" && state.wallet && m.round.payouts?.some((p: { wallet: string }) => p.wallet === state.wallet)) setTimeout(hi, 500);
       break;
     case "pot":
       set((s) => ({ pot: m.pot, coin: m.coin ?? s.coin }));
       break;
     case "totals":
-      set({ totals: m.totals });
-      break;
-    case "burn":
       set({ totals: m.totals });
       break;
   }
@@ -195,6 +205,7 @@ function retry() {
 function start() {
   if (started || typeof window === "undefined") return;
   started = true;
+  state = { ...state, wallet: savedWallet() };
   connect();
 }
 
@@ -203,8 +214,9 @@ function start() {
 export function vote(side: Side) {
   const r = state.round;
   if (!r) return;
+  if (!state.wallet) return toast("Paste your wallet first");
   if (serverNow() >= r.endsAt) return toast("No more bets");
   if (!ws || ws.readyState !== 1) return toast("Reconnecting…");
-  set({ me: { roundId: r.id, side } });
-  ws.send(JSON.stringify({ op: "vote", voter: voterId(), side }));
+  set((s) => ({ me: { ...(s.me ?? {}), roundId: r.id, side } }));
+  ws.send(JSON.stringify({ op: "vote", wallet: state.wallet, side }));
 }
